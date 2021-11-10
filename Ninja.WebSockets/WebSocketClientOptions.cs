@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using System.Text;
 
 namespace Ninja.WebSockets
@@ -52,6 +53,11 @@ namespace Ninja.WebSockets
         public string SecWebSocketProtocol { get; set; }
 
         /// <summary>
+        /// Remote SSL Verification Callback for self signed certificates or custom verification
+        /// </summary>
+        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the WebSocketClientOptions class
         /// </summary>
         public WebSocketClientOptions()
@@ -61,6 +67,7 @@ namespace Ninja.WebSockets
             AdditionalHttpHeaders = new Dictionary<string, string>();
             IncludeExceptionInCloseResponse = false;
             SecWebSocketProtocol = null;
+            RemoteCertificateValidationCallback = null;
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Ninja.WebSockets
             int port = uri.Port;
             string uriScheme = uri.Scheme.ToLower();
             bool useSsl = uriScheme == "wss" || uriScheme == "https";
-            Stream stream = await GetStream(guid, useSsl, options.NoDelay, host, port, token);
+            Stream stream = await GetStream(guid, useSsl, options.NoDelay, host, port, options.RemoteCertificateValidationCallback, token);
             return await PerformHandshake(guid, uri, stream, options, token);
         }
 
@@ -215,7 +215,7 @@ namespace Ninja.WebSockets
         /// <param name="port">The destination port</param>
         /// <param name="cancellationToken">Used to cancel the request</param>
         /// <returns>A connected and open stream</returns>
-        protected virtual async Task<Stream> GetStream(Guid loggingGuid, bool isSecure, bool noDelay, string host, int port, CancellationToken cancellationToken)
+        protected virtual async Task<Stream> GetStream(Guid loggingGuid, bool isSecure, bool noDelay, string host, int port, RemoteCertificateValidationCallback remoteCertificateValidationCallback, CancellationToken cancellationToken)
         {
             var tcpClient = new TcpClient();
             tcpClient.NoDelay = noDelay;
@@ -236,7 +236,10 @@ namespace Ninja.WebSockets
 
             if (isSecure)
             {
-                SslStream sslStream = new SslStream(stream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                if (remoteCertificateValidationCallback == null)
+                    remoteCertificateValidationCallback = new RemoteCertificateValidationCallback(ValidateServerCertificate);
+
+                SslStream sslStream = new SslStream(stream, false, remoteCertificateValidationCallback, null);
                 Events.Log.AttemtingToSecureSslConnection(loggingGuid);
 
                 // This will throw an AuthenticationException if the certificate is not valid
